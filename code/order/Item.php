@@ -12,7 +12,7 @@ class Item extends DataObject {
 	 * @var Array
 	 */
 	private static $db = array(
-		'Price' => 'Decimal(19,4)',
+		'Price' => 'Decimal(19,8)',
 		'Quantity' => 'Int',
 		'ProductVersion' => 'Int',
 		'VariationVersion' => 'Int'
@@ -24,10 +24,13 @@ class Item extends DataObject {
 
 		$order = $this->Order();
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->Price);
 		$amount->setCurrency($order->BaseCurrency);
 		$amount->setSymbol($order->BaseCurrencySymbol);
+		
+		$this->extend('updateAmount', $amount);
+		
 		return $amount;
 	}
 

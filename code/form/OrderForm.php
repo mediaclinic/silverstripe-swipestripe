@@ -250,6 +250,7 @@ class OrderForm extends Form {
 	}
 
 	public function process($data, $form) {
+		$this->extend('onBeforeProcess', $data);
 
 		//Check payment type
 		try {
@@ -314,9 +315,11 @@ class OrderForm extends Form {
 		$order->onBeforePayment();
 
 		try {
+			$shopConfig = ShopConfig::current_shop_config();
+			$precision = $shopConfig->BaseCurrencyPrecision;
 
 			$paymentData = array(
-				'Amount' => number_format($order->Total()->getAmount(), 2, '.', ''),
+				'Amount' => number_format($order->Total()->getAmount(), $precision, '.', ''),
 				'Currency' => $order->Total()->getCurrency(),
 				'Reference' => $order->ID
 			);

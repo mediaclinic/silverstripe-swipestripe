@@ -40,18 +40,20 @@ class ProductForm extends Form {
 
 		if ($variations && $variations->exists()) foreach ($variations as $variation) {
 
-			$variationPrice = $variation->Price();
-			
-			$amount = new Price();
-			$amount->setAmount($productPrice->getAmount() + $variationPrice->getAmount());
-			$amount->setCurrency($productPrice->getCurrency());
-			$amount->setSymbol($productPrice->getSymbol());
+			if ($variation->isEnabled()) {
+				$variationPrice = $variation->Price();
+				
+				$amount = Price::create();
+				$amount->setAmount($productPrice->getAmount() + $variationPrice->getAmount());
+				$amount->setCurrency($productPrice->getCurrency());
+				$amount->setSymbol($productPrice->getSymbol());
 
-			$map[] = array(
-				'price' => $amount->Nice(),
-				'options' => $variation->Options()->column('ID'),
-				'free' => _t('Product.FREE', 'Free'),
-			);
+				$map[] = array(
+					'price' => $amount->Nice(),
+					'options' => $variation->Options()->column('ID'),
+					'free' => _t('Product.FREE', 'Free'),
+				);
+			}
 		}
 
 		$this->setAttribute('data-map', json_encode($map));
@@ -198,7 +200,8 @@ class ProductForm extends Form {
 			}
 			$form->sessionMessage(
 				DBField::create_field("HTMLText", $message),
-				'good'
+				'good',
+				false
 			);
 		}
 		$this->goToNextPage();
@@ -351,7 +354,7 @@ class ProductForm_Validator extends RequiredFields {
 /**
  * Represent each {@link Item} in the {@link Order} on the {@link Product} {@link AddToCartForm}.
  */
-class ProductForm_QuantityField extends TextField {
+class ProductForm_QuantityField extends NumericField {
 
 	public function Type() {
 		return 'quantity';	

@@ -21,7 +21,7 @@ class Product extends Page {
 	 * @var Array
 	 */
 	private static $db = array(
-		'Price' => 'Decimal(19,4)',
+		'Price' => 'Decimal(19,8)',
 		'Currency' => 'Varchar(3)'
 	);
 
@@ -35,7 +35,7 @@ class Product extends Page {
 		// TODO: Multi currency
 		$shopConfig = ShopConfig::current_shop_config();
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->Price);
 		$amount->setCurrency($shopConfig->BaseCurrency);
 		$amount->setSymbol($shopConfig->BaseCurrencySymbol);
@@ -224,6 +224,9 @@ class Product extends Page {
 	 */
 	public function requiresVariation() {
 		$attributes = $this->Attributes();
+		
+		$this->extend('updaterequiresVariation', $attributes);
+		
 		return $attributes && $attributes->exists();
 	}
 	

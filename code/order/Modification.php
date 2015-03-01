@@ -22,7 +22,7 @@ class Modification extends DataObject {
 	 */
 	private static $db = array(
 		'Value' => 'Int',
-		'Price' => 'Decimal(19,4)',
+		'Price' => 'Decimal(19,8)',
 		'Description' => 'Text',
 		'SubTotalModifier' => 'Boolean',
 		'SortOrder' => 'Int'
@@ -66,7 +66,7 @@ class Modification extends DataObject {
 		// TODO: Multi currency
 		$order = $this->Order();
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->Price);
 		$amount->setCurrency($order->BaseCurrency);
 		$amount->setSymbol($order->BaseCurrencySymbol);

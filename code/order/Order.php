@@ -36,8 +36,8 @@ class Order extends DataObject implements PermissionProvider {
 		'Status' => "Enum('Pending,Processing,Dispatched,Cancelled,Cart','Cart')",
 		'PaymentStatus' => "Enum('Unpaid,Paid','Unpaid')",
 
-		'TotalPrice' => 'Decimal(19,4)',
-		'SubTotalPrice' => 'Decimal(19,4)',
+		'TotalPrice' => 'Decimal(19,8)',
+		'SubTotalPrice' => 'Decimal(19,8)',
 
 		'BaseCurrency' => 'Varchar(3)',
 		'BaseCurrencySymbol' => 'Varchar(10)',
@@ -51,7 +51,7 @@ class Order extends DataObject implements PermissionProvider {
 
 		// TODO: Multi currency
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->TotalPrice);
 		$amount->setCurrency($this->BaseCurrency);
 		$amount->setSymbol($this->BaseCurrencySymbol);
@@ -74,7 +74,7 @@ class Order extends DataObject implements PermissionProvider {
 
 		// TODO: Multi currency
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->SubTotalPrice);
 		$amount->setCurrency($this->BaseCurrency);
 		$amount->setSymbol($this->BaseCurrencySymbol);
@@ -197,7 +197,7 @@ class Order extends DataObject implements PermissionProvider {
 
 		if ($member == null && !$member = Member::currentUser()) return false;
 
-		$administratorPerm = Permission::check('VIEW_ORDER', 'any', $member);
+		$administratorPerm = Permission::check('ADMIN') && Permission::check('VIEW_ORDER', 'any', $member);
 		$customerPerm = Permission::check('VIEW_ORDER', 'any', $member) && $member->ID == $this->MemberID;
 
 		return $administratorPerm || $customerPerm;
@@ -210,7 +210,7 @@ class Order extends DataObject implements PermissionProvider {
 	 * @return Boolean False always
 	 */
 	public function canEdit($member = null) {
-		$administratorPerm = Permission::check('EDIT_ORDER', 'any', $member);
+		$administratorPerm = Permission::check('ADMIN') && Permission::check('EDIT_ORDER', 'any', $member);
 		
 		return $administratorPerm;
 	}
@@ -232,7 +232,7 @@ class Order extends DataObject implements PermissionProvider {
 	 * @return Boolean False always
 	 */
 	public function canDelete($member = null) {
-		return true;
+		return Permission::check('ADMIN');
 	}
 
 	/**
@@ -475,7 +475,7 @@ class Order extends DataObject implements PermissionProvider {
 
 		// TODO: Multi currency
 		
-		$outstanding = new Price();
+		$outstanding = Price::create();
 		$outstanding->setAmount($total);
 		$outstanding->setCurrency($this->BaseCurrency);
 		$outstanding->setSymbol($this->BaseCurrencySymbol);
@@ -498,7 +498,7 @@ class Order extends DataObject implements PermissionProvider {
 			}
 		}
 		
-		$totalPaid = new Price();
+		$totalPaid = Price::create();
 		$totalPaid->setAmount($paid);
 		$totalPaid->setCurrency($this->BaseCurrency);
 		$totalPaid->setSymbol($this->BaseCurrencySymbol);

@@ -10,7 +10,7 @@
  * @package swipestripe
  * @subpackage product
  */
-class Variation extends DataObject {
+class Variation extends DataObject implements PermissionProvider {
 
 	/**
 	 * DB fields for a Variation
@@ -18,7 +18,7 @@ class Variation extends DataObject {
 	 * @var Array
 	 */
 	private static $db = array(
-		'Price' => 'Decimal(19,4)',
+		'Price' => 'Decimal(19,8)',
 		'Currency' => 'Varchar(3)',
 		'Status' => "Enum('Enabled,Disabled','Enabled')",
 		'SortOrder' => 'Int'
@@ -26,7 +26,7 @@ class Variation extends DataObject {
 
 	public function Amount() {
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setCurrency($this->Currency);
 		$amount->setAmount($this->Price);
 		$amount->setSymbol(ShopConfig::current_shop_config()->BaseCurrencySymbol);
@@ -53,8 +53,7 @@ class Variation extends DataObject {
 	 * @var Array
 	 */
 	private static $has_one = array(
-		'Product' => 'Product',
-		'Image' => 'Product_Image'
+		'Product' => 'Product'
 	);
 	
 	/**
@@ -92,6 +91,28 @@ class Variation extends DataObject {
 	);
 
 	private static $default_sort = 'SortOrder';
+
+	public function providePermissions() {
+		return array(
+			'EDIT_VARIATIONS' => 'Edit Variations',
+		);
+	}
+
+	public function canEdit($member = null) {
+		return Permission::check('EDIT_VARIATIONS');
+	}
+
+	public function canView($member = null) {
+		return true;
+	}
+
+	public function canDelete($member = null) {
+		return Permission::check('EDIT_VARIATIONS');
+	}
+
+	public function canCreate($member = null) {
+		return Permission::check('EDIT_VARIATIONS');
+	}
 	
 	/**
 	 * Overloaded magic method so that attribute values can be retrieved for display 
@@ -161,6 +182,8 @@ class Variation extends DataObject {
 			'Status', 
 			$this->dbObject('Status')->enumValues()
 		)->setRightTitle('You can disable a variation to prevent it being sold'));
+
+		$this->extend('updateCMSFields', $fields);
 
 		return $fields;
 	}
@@ -311,7 +334,7 @@ class Variation extends DataObject {
 		if ($variationAttributeOptions) {
 
 			$product = $this->Product();
-			$variations = DataObject::get('Variation', "Variation.ProductID = " . $product->ID . " AND Variation.ID != " . $this->ID);
+			$variations = DataObject::get('Variation', "\"Variation\".\"ProductID\" = " . $product->ID . " AND \"Variation\".\"ID\" != " . $this->ID);
 			
 			if ($variations) foreach ($variations as $variation) {
 	
@@ -338,7 +361,9 @@ class Variation extends DataObject {
 	public function isEnabled() {
 
 		$latestVersion = Versioned::get_latest_version('Variation', $this->ID);
-		return $latestVersion->Status == 'Enabled';
+		$enabled = $latestVersion->Status == 'Enabled';
+		$this->extend('isEnabled', $enabled);
+		return $enabled;
 	}
 	
 	/**
@@ -367,7 +392,7 @@ class Variation extends DataObject {
 	 * @see DataObject::validate()
 	 * @return ValidationResult
 	 */
-	protected function validate() {
+	public function validate() {
 		
 		$result = new ValidationResult(); 
 

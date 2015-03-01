@@ -32,8 +32,23 @@ class PriceField extends CurrencyField {
 	 */
 	public function setValue($val) {
 		if(!$val) $val = 0.00;
-		$this->value = number_format((double)preg_replace('/[^0-9.\-]/', '', $val), 2);
+		$shopConfig = ShopConfig::current_shop_config();
+		$precision = $shopConfig->BaseCurrencyPrecision;
+
+		$this->value = number_format((double)preg_replace('/[^0-9.\-]/', '', $val), $precision);
 		return $this;
+	}
+
+	public function validate($validator) {
+		if(!empty ($this->value)
+				//validate against any number of digits after the decimal place
+				&& !preg_match('/^\s*(\-?\$?|\$\-?)?(\d{1,3}(\,\d{3})*|(\d+))(\.\d+)?\s*$/', $this->value)) {
+
+			$validator->validationError($this->name, _t('Form.VALIDCURRENCY', "Please enter a valid currency"),
+				"validation", false);
+			return false;
+		}
+		return true;
 	}
 
 }

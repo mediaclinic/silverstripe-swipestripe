@@ -25,7 +25,7 @@ class ItemOption extends DataObject {
 	 */
 	private static $db = array(
 		'Description' => 'Varchar',
-		'Price' => 'Decimal(19,4)'
+		'Price' => 'Decimal(19,8)'
 	);
 
 	public function Amount() {
@@ -34,7 +34,7 @@ class ItemOption extends DataObject {
 
 		$order = $this->Order();
 
-		$amount = new Price();
+		$amount = Price::create();
 		$amount->setAmount($this->Price);
 		$amount->setCurrency($order->BaseCurrency);
 		$amount->setSymbol($order->BaseCurrencySymbol);
